@@ -27,6 +27,7 @@ describe('Deck of cards', () => {
         .spec()
         .post(`${baseUrl}/deck/${deckId}/shuffle/`)
         .expectStatus(StatusCodes.OK)
+        .inspect()
         .expectBodyContains('52')
         .expectJsonLike({ shuffled: true });
     });
