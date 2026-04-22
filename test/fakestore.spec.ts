@@ -7,6 +7,7 @@ describe('FakeStore API', () => {
 
   beforeAll(() => {
     console.log('🚀 Iniciando testes da FakeStore API...');
+    p.request.setDefaultTimeout(10000); // ✅ evita erro no CI
     p.reporter.add(SimpleReporter);
   });
 
@@ -25,7 +26,9 @@ describe('FakeStore API', () => {
         .returns('res.body');
 
       console.log('📦 Total de produtos:', res.length);
-      console.log('📦 Primeiro produto:', res[0]);
+
+      expect(res.length).toBeGreaterThan(0); // ✅ cobertura
+      expect(res[0]).toHaveProperty('id');   // ✅ cobertura
     });
 
     it('GET - Produto por ID', async () => {
@@ -38,6 +41,19 @@ describe('FakeStore API', () => {
         .returns('res.body');
 
       console.log('📦 Produto recebido:', res);
+
+      expect(res.id).toBe(1);
+      expect(res).toHaveProperty('title');
+      expect(res).toHaveProperty('price');
+    });
+
+    it('GET - Produto inexistente (erro)', async () => {
+      console.log('\n⚠️ [TESTE] Produto inexistente');
+
+      await p
+        .spec()
+        .get(`${baseUrl}/products/999999`)
+        .expectStatus(404); // ✅ cobre cenário de erro
     });
 
     it('POST - Criar produto', async () => {
@@ -51,16 +67,17 @@ describe('FakeStore API', () => {
         category: 'electronics'
       };
 
-      console.log('📤 Enviando payload:', payload);
-
       const res = await p
         .spec()
         .post(`${baseUrl}/products`)
         .withJson(payload)
-        .expectStatus(201) // ✅ CORRETO
+        .expectStatus(201)
         .returns('res.body');
 
       console.log('📥 Resposta da API:', res);
+
+      expect(res.title).toBe(payload.title);
+      expect(res).toHaveProperty('id');
     });
 
   });
@@ -80,7 +97,9 @@ describe('FakeStore API', () => {
         .returns('res.body');
 
       console.log('📦 Total de carrinhos:', res.length);
-      console.log('📦 Primeiro carrinho:', res[0]);
+
+      expect(res.length).toBeGreaterThan(0);
+      expect(res[0]).toHaveProperty('id');
     });
 
     it('POST - Criar carrinho', async () => {
@@ -92,16 +111,17 @@ describe('FakeStore API', () => {
         products: [{ productId: 1, quantity: 1 }]
       };
 
-      console.log('📤 Enviando payload:', payload);
-
       const res = await p
         .spec()
         .post(`${baseUrl}/carts`)
         .withJson(payload)
-        .expectStatus(201) // ✅ CORRETO
+        .expectStatus(201)
         .returns('res.body');
 
       console.log('📥 Resposta da API:', res);
+
+      expect(res.userId).toBe(payload.userId);
+      expect(res.products.length).toBeGreaterThan(0);
     });
 
   });
@@ -121,7 +141,9 @@ describe('FakeStore API', () => {
         .returns('res.body');
 
       console.log('📦 Total de usuários:', res.length);
-      console.log('📦 Primeiro usuário:', res[0]);
+
+      expect(res.length).toBeGreaterThan(0);
+      expect(res[0]).toHaveProperty('email');
     });
 
   });
